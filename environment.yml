@@ -25,6 +25,8 @@ dependencies:
     - pyarrow
     - scikit-image
     - tqdm
+    - pydot
+    - redis
 variables:
-  SIS_DATASET_INPUT_PATH: "/media/nas/Datasets/asl_fingerspelling"
-  SIS_DATASET_PREPROC_PATH: "/media/nas/Datasets/asl_fingerspelling_tfrec"
+  SIS_DATASET_INPUT_PATH: "/Volumes/Public/Datasets/asl_fingerspelling"
+  SIS_DATASET_PREPROC_PATH: "/Volumes/Public/Datasets/asl_fingerspelling_tfrec"
