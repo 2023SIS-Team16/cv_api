@@ -26,7 +26,9 @@ dependencies:
     - scikit-image
     - tqdm
     - pydot
-    - redis
+    - redis==5.0.1
+    - imutils
 variables:
   SIS_DATASET_INPUT_PATH: "/Volumes/Public/Datasets/asl_fingerspelling"
   SIS_DATASET_PREPROC_PATH: "/Volumes/Public/Datasets/asl_fingerspelling_tfrec"
+  API_SECRET: "this is definitely not a secret but oh well"
