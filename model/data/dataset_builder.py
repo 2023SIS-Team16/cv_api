@@ -9,6 +9,8 @@ import os
 import json
 import uuid
 
+ALPHABET = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
+
 class DatasetBuilder:
     def __init__(self, frame_paths, output_path, classes, landmark_processor: LandmarkProcessor):
         self.frame_paths = frame_paths
@@ -66,12 +68,10 @@ class DatasetBuilder:
 
             landmarks.extend(hand_landmarks[0][i].z for i in collected_landmarks[1])
             landmarks.extend(pose_landmarks[i].z for i in collected_landmarks[0])
-
             example = self.__serialize(landmarks, label)
             content.append(example)
             count += 1
             if count >= entries_per_rec or i == (maxDatasetSize - 1):
-                print("thing")
                 export_count += 1
                 with tf.io.TFRecordWriter(os.path.join(self.output_path, f"train_{export_count:04}_{str(uuid.uuid4())}.tfrecord")) as writer:
                     self.__write(writer, content)
@@ -83,8 +83,8 @@ class DatasetBuilder:
     def __float_feature(self, value):
         return tf.train.Feature(float_list=tf.train.FloatList(value=value))
     
-    # def __int64_feature(self, value):
-    #     return tf.train.Feature(int64_list=tf.train.Int64List(value=value))
+    def __int64_feature(self, value):
+        return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
     
     def __bytes_feature(self, value):
         if isinstance(value, type(tf.constant(0))):
@@ -95,7 +95,7 @@ class DatasetBuilder:
     def __serialize(self, landmarks, label):
         feature = {
             "landmarks": self.__float_feature(landmarks),
-            "target_label": self.__bytes_feature(label.encode('utf-8'))
+            "target_label": self.__int64_feature(ALPHABET.index(label))
         }
 
         return tf.train.Example(features=tf.train.Features(feature=feature)).SerializeToString()

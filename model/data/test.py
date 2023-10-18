@@ -1,16 +1,16 @@
 from dataset_builder import DatasetBuilder
 from inference_testing.landmarks import LandmarkProcessor
 
-image_paths = [
-    "/Users/jon/development/university/sis/videos/fig_1/frame_0028.png",
-    "/Users/jon/development/university/sis/videos/fig_1/frame_0029.png",
-    "/Users/jon/development/university/sis/videos/fig_1/frame_0030.png",
-    "/Users/jon/development/university/sis/videos/fig_1/frame_0031.png",
-]
+A_SIZE = 278
+B_SIZE = 401
 
-classes = [
-    'f', 'f', 'f', 'f'
-]
+image_paths = []
+image_paths.extend([f"/Users/jon/development/university/sis/videos/alphabet/a/frame_{i:04}.png" for i in range(1, A_SIZE+1)])
+image_paths.extend([f"/Users/jon/development/university/sis/videos/alphabet/b/frame_{i:04}.png" for i in range(1, B_SIZE+1)])
+
+classes = []
+classes.extend(["a" for _ in range(0, A_SIZE)])
+classes.extend(["b" for _ in range(0, B_SIZE)])
 
 processor = LandmarkProcessor(
     pose_landmarker="/Users/jon/development/university/sis/models/pose_landmarker_full.task",
