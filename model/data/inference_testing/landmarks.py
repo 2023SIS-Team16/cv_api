@@ -64,7 +64,7 @@ class LandmarkProcessor:
             face_landmarks = face_landmarker.detect(mp_image)
         
         # [result[0].pose_landmarks[0][landmark] for landmark in pose_desired_landmarks_indices]
-        filtered_pose_landmarks = pose_landmarks.pose_landmarks[0]
+        filtered_pose_landmarks = pose_landmarks.pose_landmarks[0] if pose_landmarks.pose_landmarks != None and len(pose_landmarks.pose_landmarks) > 0 else []
         filtered_hand_landmarks = []
 
         for hand in hand_landmarks.hand_landmarks:
