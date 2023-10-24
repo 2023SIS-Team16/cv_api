@@ -1,6 +1,6 @@
-import communication
+import nlp_communication
 
-communicator = communication.Communication()
+communicator = nlp_communication.Communication()
 
 sample_string = "this is a test sentnce for the natural language processing model"
 

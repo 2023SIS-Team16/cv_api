@@ -10,6 +10,8 @@ class Communication:
     string = ""
 
     def new_letter(self, letter):
+        print(f"New Letter: {letter}")
+
         self.string = self.string + letter
 
         input = {
@@ -29,7 +31,8 @@ class Communication:
         
         if response.content['text']:
             print("Message emitted")
-            main.emit_message(response.content['text'])
+            print(response.context['text'])
+            main.socketio.emit_message(response.content['text'])
 
 
     def upload_to_interface(self, text_to_display):
