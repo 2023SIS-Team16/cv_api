@@ -27,13 +27,17 @@ class Communication:
         print(content)
 
         #Truncate string if there's a response
-        string = string[content['index']:]
+        self.string = self.string[content['index']:]
         
-        if response.content['text']:
+        if "text" in content:
             print("Message emitted")
-            print(response.context['text'])
-            main.socketio.emit_message(response.content['text'])
+            print(content['text'])
+            #main.socketio.emit_message(content['text'])
+            return(content['text'])
+        return None
 
+    def reset_string(self):
+        self.string = ""
 
     def upload_to_interface(self, text_to_display):
         print("Uploading text to the HoloLens")

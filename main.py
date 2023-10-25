@@ -2,7 +2,7 @@
 
 import base64
 import os
-import cv2 as cv
+import cv2 as cv #pip install pip install opencv-python
 import numpy as np
 from flask import Flask, render_template, send_from_directory
 from flask_socketio import SocketIO, emit
@@ -34,6 +34,7 @@ def received_image(encoded_image):
     gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
     cv.imwrite(savePath, gray)
     emit("response", {"data": "image received"})
+
 
 if __name__ == "__main__":
     socketio.run(app, debug=True, port=8765, host='0.0.0.0')
