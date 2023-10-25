@@ -43,25 +43,25 @@ class DatasetBuilder:
         for i,path in enumerate(self.frame_paths):
             # Get the label for the current image
             label = self.classes[i]
-            print(f"Letter: {label}")
 
             if os.path.exists(path) == False: # Check if image path is valid/exists
                 print("image path does not exist")
                 continue
-            
+            # print("Path: " + path)
             image = cv.imread(path)
             pose_landmarks, hand_landmarks, handedness, _ = self.landmark_processor.get_landmarks(image) # Get landmarks from current image
             if hand_landmarks == [] or len(hand_landmarks) < 1 or pose_landmarks == [] or len(pose_landmarks) < 1:
                 continue # Skip this image if there are no hand landmarks
             
+            print(f"Letter: {label}")
             landmarks = []
-            landmarks.extend(hand_landmarks[0][i].x for i in collected_landmarks[1])
+            landmarks.extend(hand_landmarks[0].landmark[i].x for i in collected_landmarks[1])
             landmarks.extend(pose_landmarks[i].y for i in collected_landmarks[0])
 
-            landmarks.extend(hand_landmarks[0][i].y for i in collected_landmarks[1])
+            landmarks.extend(hand_landmarks[0].landmark[i].y for i in collected_landmarks[1])
             landmarks.extend(pose_landmarks[i].y for i in collected_landmarks[0])
 
-            landmarks.extend(hand_landmarks[0][i].z for i in collected_landmarks[1])
+            landmarks.extend(hand_landmarks[0].landmark[i].z for i in collected_landmarks[1])
             landmarks.extend(pose_landmarks[i].z for i in collected_landmarks[0])
             example = self.__serialize(landmarks, label)
             content.append(example)
