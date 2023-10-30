@@ -2,6 +2,7 @@ import cv2 as cv
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
+import numpy as np
 
 class LandmarkProcessor:
     def __init__(self, pose_landmarker, hand_landmarker, face_landmarker):
@@ -22,7 +23,7 @@ class LandmarkProcessor:
 
         self.face_options = FaceLandmarkerOptions(
             base_options = BaseOptions(model_asset_path = self.face_landmarker_path),
-            running_mode=VisionRunningMode.IMAGE
+            running_mode=VisionRunningMode.IMAGE,
         )
     
     def __init_pose_landmarker(self):
@@ -48,6 +49,8 @@ class LandmarkProcessor:
             base_options = BaseOptions(model_asset_path = self.hand_landmarker_path),
             running_mode = VisionRunningMode.IMAGE,
             num_hands = 1,
+            min_hand_detection_confidence=0.3,
+            min_hand_presence_confidence=0.3,
         )
 
     def get_landmarks(self, image_arr):
@@ -57,19 +60,22 @@ class LandmarkProcessor:
             pose_landmarks = pose_landmarker.detect(mp_image)
 
 
-        with self.HandLandmarker.create_from_options(self.hand_options) as hand_landmarker:
-            hand_landmarks = hand_landmarker.detect(mp_image)
+        # with self.HandLandmarker.create_from_options(self.hand_options) as hand_landmarker:
+        #     hand_landmarks = hand_landmarker.detect(mp_image)
+
+        with mp.solutions.hands.Hands(min_detection_confidence=0.3, min_tracking_confidence=0.3, max_num_hands=1) as hands:
+            hand_landmarks = hands.process(np.array(image_arr))
 
         with self.FaceLandmarker.create_from_options(self.face_options) as face_landmarker:
             face_landmarks = face_landmarker.detect(mp_image)
         
         # [result[0].pose_landmarks[0][landmark] for landmark in pose_desired_landmarks_indices]
-        filtered_pose_landmarks = pose_landmarks.pose_landmarks[0]
+        filtered_pose_landmarks = pose_landmarks.pose_landmarks[0] if pose_landmarks.pose_landmarks != None and len(pose_landmarks.pose_landmarks) > 0 else []
         filtered_hand_landmarks = []
 
-        for hand in hand_landmarks.hand_landmarks:
-            filtered_hand_landmarks = filtered_hand_landmarks + [hand]
-            
+        if hand_landmarks.multi_hand_landmarks != None and len(hand_landmarks.multi_hand_landmarks) > 0:
+            for hand in hand_landmarks.multi_hand_landmarks:
+                filtered_hand_landmarks = filtered_hand_landmarks + [hand]
         
-        return filtered_pose_landmarks, filtered_hand_landmarks, hand_landmarks.handedness, face_landmarks.face_landmarks[0] if len(face_landmarks.face_landmarks) > 0 else []
+        return filtered_pose_landmarks, filtered_hand_landmarks, None, face_landmarks.face_landmarks[0] if len(face_landmarks.face_landmarks) > 0 else []
             
