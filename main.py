@@ -1,39 +1,95 @@
 # from hand_segment import HandSegmenter
 
-import base64
-import os
+import socket, os
 import cv2 as cv
 import numpy as np
-from flask import Flask, render_template, send_from_directory
-from flask_socketio import SocketIO, emit
 
-# segmenter = HandSegmenter(maxHands=1, boundingBoxOffset=(20, 20))
+# UDP_IP = "127.0.0.1"
+# UDP_PORT = 54174
 
-app = Flask(__name__)
-app.config["SECRET"] = "obivously not a secret"
+# sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+# sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+# sock.bind((UDP_IP, UDP_PORT))
 
-socketio = SocketIO(app)
+# print("UDP target IP:", UDP_IP)
 
-savePath = os.path.join(os.getcwd(), "img.jpg")
+# while True:
+#     print("Waiting for data...")
+#     data, addr = sock.recvfrom(10000000) # buffer size is 1024 bytes
+#     for x in data:
+#         print(x)
 
-def convert_encoded_image(encoded):
-    data = encoded.split(',')[1]
-    bytes = base64.b64decode(data)
-    array = np.frombuffer(bytes, dtype=np.uint8)
-    image = cv.imdecode(array, cv.IMREAD_COLOR)
-    return image
+# sock.close()
+# os.system("pause")
 
-@socketio.on("connect")
-def connect():
-    print("Connected")
-    emit("response", {"data": "connected"})
+from model.data.inference_testing.landmarks import LandmarkProcessor
+import tensorflow as tf
 
-@socketio.on("image")
-def received_image(encoded_image):
-    image = convert_encoded_image(encoded_image)
-    gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
-    cv.imwrite(savePath, gray)
-    emit("response", {"data": "image received"})
+processor = LandmarkProcessor(
+    pose_landmarker="/Users/jon/development/university/sis/models/pose_landmarker_full.task",
+    hand_landmarker="/Users/jon/development/university/sis/models/hand_landmarker.task",
+    face_landmarker="/Users/jon/development/university/sis/models/face_landmarker.task"
+)
 
-if __name__ == "__main__":
-    socketio.run(app, debug=True, port=8765, host='0.0.0.0')
+model_path = "/Users/jon/development/university/sis/models/cnn/model_2.tflite"
+
+interpreter = tf.lite.Interpreter(model_path=model_path)
+
+input_details = interpreter.get_input_details()
+print(input_details)
+
+found_signatures = list(interpreter.get_signature_list().keys())
+print(found_signatures)
+print(interpreter.get_signature_list())
+
+RUNNER_SIGNATURE = "serving_default"
+REQ_OUTPUT = "outputs"
+
+if RUNNER_SIGNATURE not in found_signatures:
+    raise ValueError(f"Signature {RUNNER_SIGNATURE} not found in model. Found {found_signatures}")
+
+prediction_fn = interpreter.get_signature_runner(RUNNER_SIGNATURE)
+print(prediction_fn)
+
+phrase = []
+
+cam = cv.VideoCapture(0)
+
+while True:
+    ret, frame = cam.read()
+
+    frame = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
+
+    pose_indices = []#[12, 14, 16, 18, 20, 22, 11, 13, 15, 17, 19, 21]
+    hand_indices = list(range(0, 21))
+
+    # cv.imshow('frame', frame)
+    pose_landmarks, hand_landmarks, _, _ = processor.get_landmarks(frame)
+    if hand_landmarks == [] or len(hand_landmarks) < 1 or pose_landmarks == [] or len(pose_landmarks) < 1:
+        print(f"No landmarks: {len(hand_landmarks)} ... {len(pose_landmarks)}")
+        # cv.destroyAllWindows()
+        continue # Skip this image if there are no hand landmarks
+
+
+    landmarks = []
+    landmarks.extend(hand_landmarks[0].landmark[i].x for i in hand_indices)
+    landmarks.extend(pose_landmarks[i].y for i in pose_indices)
+
+    landmarks.extend(hand_landmarks[0].landmark[i].y for i in hand_indices)
+    landmarks.extend(pose_landmarks[i].y for i in pose_indices)
+
+    landmarks.extend(hand_landmarks[0].landmark[i].z for i in hand_indices)
+    landmarks.extend(pose_landmarks[i].z for i in pose_indices)
+    landmarks = np.array([landmarks])
+
+    prediction_data = tf.cast(landmarks, tf.float32)
+    prediction_data = tf.reshape(prediction_data, (prediction_data.shape[0], prediction_data.shape[1], 1))
+
+    prediction = prediction_fn(conv1d_8_input=prediction_data)['dense_3']
+
+    cats = np.zeros((1, 26))
+    cats[np.arange(1), np.argmax(prediction)] = 1
+    print(cats)
+
+    break
+
