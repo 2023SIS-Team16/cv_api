@@ -33,6 +33,8 @@ processor = LandmarkProcessor(
 
 model_path = "/Users/jon/development/university/sis/models/cnn/model_2.tflite"
 
+ALPHABET = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
+
 interpreter = tf.lite.Interpreter(model_path=model_path)
 
 input_details = interpreter.get_input_details()
@@ -55,8 +57,15 @@ phrase = []
 
 cam = cv.VideoCapture(0)
 
+frame_count = 0
+
 while True:
     ret, frame = cam.read()
+    if frame_count == 10:
+        frame_count = 0
+    else:
+        frame_count += 1
+        continue
 
     frame = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
 
@@ -91,5 +100,13 @@ while True:
     cats[np.arange(1), np.argmax(prediction)] = 1
     print(cats)
 
-    break
+    letter = ALPHABET[np.argmax(prediction)]
+    print(letter)
+
+    if len(phrase) == 0 or phrase[-1] != letter:
+        phrase.append(letter)
+        print(phrase)
+    
+    if cv.waitKey(1) & 0xFF == ord('q'):
+        break
 
