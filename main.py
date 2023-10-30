@@ -1,5 +1,6 @@
 # from hand_segment import HandSegmenter
-
+import base64
+import os
 import socket, os
 import cv2 as cv
 import numpy as np
@@ -109,4 +110,3 @@ while True:
     
     if cv.waitKey(1) & 0xFF == ord('q'):
         break
-
