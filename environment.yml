@@ -27,6 +27,7 @@ dependencies:
     - tqdm
     - scikit-learn
     - websockets
+    - autocorrect
 variables:
   SIS_DATASET_INPUT_PATH: "/media/nas/Datasets/asl_fingerspelling"
   SIS_DATASET_PREPROC_PATH: "/media/nas/Datasets/asl_fingerspelling_tfrec"
