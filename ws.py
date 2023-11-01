@@ -102,33 +102,33 @@ async def message_handler(websocket, path):
             # if len(phrase) == 5:
             #     phrase.append(' ')
 
-            if len(phrase) > 2:
-                await send_autocorrect(websocket, phrase)
-            else:
-                await send_autocorrect(websocket, phrase)
-
-            # if newLetterCount >= 3:
-            #     print("Calling OpenAI")
-            #     result = comms.new_letter(letter)
-            #     newLetterCount = 0
-            #     # print(f"Result: {result}")
-
-            #     if result is not None:
-            #         corrected_result = ''.join(result)
-            #         print(f"Corrected Result: {corrected_result}")
-            #         # phrase = [*corrected_result]
-
-            #         print(f"New phrase: {phrase}")
-
-            #         comms.reset_string()
-            #         comms.new_letter_no_conversion(phrase)
-
-            #         await websocket.send(corrected_result)
-            #     else:
-            #         await websocket.send(''.join(phrase))
+            # if len(phrase) > 2:
+            #     await send_autocorrect(websocket, phrase)
             # else:
-            #     comms.new_letter_no_conversion(letter)
-            #     await websocket.send(''.join(phrase))
+            #     await send_autocorrect(websocket, phrase)
+
+            if newLetterCount >= 3:
+                print("Calling OpenAI")
+                result = comms.new_letter(letter)
+                newLetterCount = 0
+                # print(f"Result: {result}")
+
+                if result is not None:
+                    corrected_result = ''.join(result)
+                    print(f"Corrected Result: {corrected_result}")
+                    # phrase = [*corrected_result]
+
+                    print(f"New phrase: {phrase}")
+
+                    comms.reset_string()
+                    comms.new_letter_no_conversion(phrase)
+
+                    await websocket.send(corrected_result)
+                else:
+                    await websocket.send(''.join(phrase))
+            else:
+                comms.new_letter_no_conversion(letter)
+                await websocket.send(''.join(phrase))
 
 
 
